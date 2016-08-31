@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+$stdin.read.split("\0").each do |trans_str|
+  transaction = FedexSMS::Transaction.load(trans_str)
+  label = transaction.fetch_first("LABEL BUFFER STRING")
+  puts label unless label.nil?
+end

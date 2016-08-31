@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "fedex-sms"
+
+begin
+  command ||= ARGV.shift || "help"
+  load File.expand_path(File.join("..", "commands", command), __FILE__)
+rescue LoadError
+  command = "help"
+  retry
+end

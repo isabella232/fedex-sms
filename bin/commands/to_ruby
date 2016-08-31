@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "fedex-sms"
+
+$stdin.read.scan(/([^\0]+)\0/) do |(transaction)|
+  puts FedexSMS::Transaction.load(transaction).to_ruby
+end

@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "fedex-sms"
+
+host = ARGV.shift or abort("usage: #{0} host [port=2000]")
+port = Integer(ARGV.shift || "2000", 10)
+
+client = FedexSMS::Client.new(host, port: port)
+
+transactions = $stdin.read.split("\0").map(&FedexSMS::Transaction.method(:load))
+puts client.post_transactions(transactions) * "\0"

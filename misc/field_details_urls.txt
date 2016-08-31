@@ -1,0 +1,10 @@
+https://www.fedex.com/us/developer/WebHelp/fsms/1601/html/FSMSHelp/FSMSTCR/Field_Descriptions_0_-_499.htm
+https://www.fedex.com/us/developer/WebHelp/fsms/1601/html/FSMSHelp/FSMSTCR/Field_Descriptions_500_-_999.htm
+https://www.fedex.com/us/developer/WebHelp/fsms/1601/html/FSMSHelp/FSMSTCR/Field_Descriptions_1000_-_1499.htm
+https://www.fedex.com/us/developer/WebHelp/fsms/1601/html/FSMSHelp/FSMSTCR/Field_Descriptions_1500_-_1599.htm
+https://www.fedex.com/us/developer/WebHelp/fsms/1601/html/FSMSHelp/FSMSTCR/Field_Descriptions_1600_-_1999.htm
+https://www.fedex.com/us/developer/WebHelp/fsms/1601/html/FSMSHelp/FSMSTCR/Field_Descriptions_2000_-_2999.htm
+https://www.fedex.com/us/developer/WebHelp/fsms/1601/html/FSMSHelp/FSMSTCR/Field_Descriptions_3000_-_3999N.htm
+https://www.fedex.com/us/developer/WebHelp/fsms/1601/html/FSMSHelp/FSMSTCR/Field_Descriptions_3000_-_3999.htm
+https://www.fedex.com/us/developer/WebHelp/fsms/1601/html/FSMSHelp/FSMSTCR/Field_Descriptions_5000_-_5999.htm
+https://www.fedex.com/us/developer/WebHelp/fsms/1601/html/FSMSHelp/FSMSTCR/Field_Descriptions_6000_-_9999.htm

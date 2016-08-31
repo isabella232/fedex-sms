@@ -1,0 +1,105 @@
+#!/usr/bin/env ruby
+
+require "csv"
+require "net/http"
+require "nokogiri"
+
+FIELD_NAME_URLS = ARGV.shift
+FIELD_DETAILS_URLS = ARGV.shift
+
+def load_docs(urls)
+  urls.map { |url| Thread.new { Net::HTTP.get(URI(url)) } }.map(&:value)
+end
+
+def load_ids(docs)
+  Nokogiri::HTML(docs.join).css("p.body").to_a.each.with_object({}) do |p, names_by_id|
+    p.text =~ /(.*)[-–]\W*(\d+)/
+    id = Integer(Regexp.last_match(2), 10)
+    value = Regexp.last_match(1).strip.gsub(/[ ]+/, " ").tr("’", "'")
+
+    value = "CUSTOMER REFERENCE" if id == 25 # fix the excessively long name
+
+    names_by_id[id] = value
+  end
+end
+
+def load_details(docs, fields_by_id)
+  Nokogiri::HTML(docs.join).css("table tr").map do |row|
+    cells = row.css("> td")
+    next unless cells.size == 7
+
+    # id, len, type, io, services, valid_for, desc = cells
+    id, multiple_occurrence = scrub_id(cells[0])
+    len, precision = scrub_len(id, cells[1])
+    type = scrub_type(id, cells[2])
+    name = fields_by_id.fetch(id, "FIELD #{id}")
+
+    [id, type, multiple_occurrence, len, precision, name]
+  end.compact
+end
+
+def scrub_id(id_elm)
+  text = id_elm.text
+  multiple_occurance = text.include?("#")
+  text = text.tr("-#*_", "")
+  [ Integer(text, 10), multiple_occurance ]
+end
+
+def scrub_len(id, len_elm)
+  min_len = 0
+  max_len = 0
+  d = nil
+
+  len_elm.text.to_s.scan(/Max\W*[\:=-]\W*([\d.]+)/i).each do |(max)|
+    max = "2"   if id == 2703 # handle a typo in id 2703
+    max = "3.2" if id == 2398 # handle a type in id 2398
+
+    if max =~ /(\d+)\.(\d+)/
+      max_len = [0, Integer(Regexp.last_match(1), 10)].max
+      d = [d || 0, Integer(Regexp.last_match(2), 10)].max
+    else
+      max_len = [max_len, Integer(max, 10)].max
+    end
+  end
+
+  len_elm.text.to_s.scan(/Min\W*[\:=-]\W*([\d.]+)/i).each do |(min)|
+    if min =~ /(\d+)\.(\d+)/
+      min_len = [0, Integer(Regexp.last_match(1), 10)].min
+      d = [d || 0, Integer(Regexp.last_match(2), 10)].max
+    else
+      min_len = [min_len, Integer(min, 10)].min
+    end
+  end
+
+  if (min_len > max_len) || (!d.nil? && d > max_len)
+    raise "Invalid len spec for id #{id}: #{min_len}..#{max_len},#{d}"
+  end
+
+  [min_len..max_len, d]
+end
+
+def scrub_type(id, type_elm)
+  type = type_elm.text.strip
+
+  # fix inconsistencies in types
+  type = "A"   if id == 99   # Null type doesn't exist in the spec
+  type = "AN"  if id == 409  # listed as numeric, but is a date in a alphanumeric format
+  type = "A/N" if id == 1274 # listed as N, but there are service codes with characters
+  type = "A/N" if id == 1398 # not listed at all... just guessing here
+  type = "AN"  if id == 5606 # listed as 'Date', which isn't actually a type fedex documents
+  type = "N"   if id == 5700 # not listed
+  type = "N"   if id == 5701 # not listed
+
+  type = "AKE" if type =~ %r{A/N including special characters} # They must mean AKE here
+  type = "A/N" if type == "AN"     # Typo in various field specs
+  type = "A/N" if type == "String" # They must mean AN here. Perhaps AKE, who knows
+  type = "A/N" if type == "S"      # S... not a type fedex documents. Probably A/N, who konws
+  type
+end
+
+name_html_docs = load_docs(File.read(FIELD_NAME_URLS).split.map(&:strip))
+field_details_docs = load_docs(File.read(FIELD_DETAILS_URLS).split.map(&:strip))
+fields_by_id = load_ids(name_html_docs)
+
+csv = CSV.new($stdout)
+load_details(field_details_docs, fields_by_id).each(&csv.method(:<<))
